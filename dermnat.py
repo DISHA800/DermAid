@@ -100,71 +100,7 @@ with torch.no_grad():
 accuracy = correct / total
 print('Accuracy on the test dataset: {:.2f}%'.format(accuracy * 100))
 
-import torch
-import torchvision
-from torchvision import datasets, transforms
-from torch.utils.data import DataLoader
-
-class SimpleCNN(torch.nn.Module):
-    def __init__(self):
-        super(SimpleCNN, self).__init__()
-        self.conv1 = torch.nn.Conv2d(3, 32, kernel_size=3, padding=1)
-        self.conv2 = torch.nn.Conv2d(32, 64, kernel_size=3, padding=1)
-        self.fc1 = torch.nn.Linear(64*32*32, 128)
-        self.fc2 = torch.nn.Linear(128, 10)
-
-    def forward(self, x):
-        x = torch.nn.functional.relu(self.conv1(x))
-        x = torch.nn.functional.max_pool2d(x, kernel_size=2, stride=2)
-        x = torch.nn.functional.relu(self.conv2(x))
-        x = torch.nn.functional.max_pool2d(x, kernel_size=2, stride=2)
-        x = x.view(-1, 64*32*32)
-        x = torch.nn.functional.relu(self.fc1(x))
-        x = self.fc2(x)
-        return x
-
-transform = transforms.Compose([
-    transforms.Resize((128, 128)),
-    transforms.ToTensor(),
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-])
-
-train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
-train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
-
-model = SimpleCNN()
-
-criterion = torch.nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-
-for epoch in range(5):
-    for i, data in enumerate(train_loader, 0):
-        inputs, labels = data
-        optimizer.zero_grad()
-        outputs = model(inputs)
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
-
-torch.save(model, 'trained_model.pth')
-
-def predict_disease(image_path):
-    model = torch.load('trained_model.pth')
-    image = Image.open(image_path)
-    image_tensor = transform(image).unsqueeze(0)  # Add batch dimension
-
-    with torch.no_grad():
-        output = model(image_tensor)
-        _, predicted = torch.max(output, 1)
-
-    return predicted.item()
-
-image_path = '//content//drive//MyDrive//archive (16)//train//Vasculitis Photos//Atypical-Pyoderma-Gangrenosum-1.jpg'
-predicted_class = predict_disease(image_path)
-print('Predicted class:', predicted_class)
-
 from PIL import Image
-
 class SimpleCNN(torch.nn.Module):
     def __init__(self):
         super(SimpleCNN, self).__init__()
